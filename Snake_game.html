@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snake Game</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            display: block;
+            margin: 0 auto;
+        }
+        #score {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 10px;
+        }
+        #restart {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        #restart button {
+            background-color: red;
+            color: white;
+            font-size: 20px;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+    <div id="score">Pont: 0</div>
+    <div id="restart">
+        <button onclick="restartGame()">Újraéledés</button>
+    </div>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const box = 30;
+        let snake = [];
+        snake[0] = { x: 9 * box, y: 10 * box };
+
+        let food = {
+            x: Math.floor(Math.random() * 19 + 1) * box,
+            y: Math.floor(Math.random() * 19 + 1) * box
+        };
+
+        let score = 0;
+        let d;
+        let game;
+
+        const snakeImg = new Image();
+        snakeImg.src = 'snake.png'; // A kígyó képének elérési útja
+
+        const foodImg = new Image();
+        foodImg.src = 'apple.png'; // Az étel képének elérési útja
+
+        snakeImg.onload = function() {
+            console.log("Snake image loaded successfully");
+        };
+        snakeImg.onerror = function() {
+            console.log("Error loading snake image");
+        };
+
+        foodImg.onload = function() {
+            console.log("Food image loaded successfully");
+        };
+        foodImg.onerror = function() {
+            console.log("Error loading food image");
+        };
+
+        document.addEventListener("keydown", direction);
+
+        function direction(event) {
+            if (event.keyCode == 37 && d != "RIGHT") {
+                d = "LEFT";
+            } else if (event.keyCode == 38 && d != "DOWN") {
+                d = "UP";
+            } else if (event.keyCode == 39 && d != "LEFT") {
+                d = "RIGHT";
+            } else if (event.keyCode == 40 && d != "UP") {
+                d = "DOWN";
+            }
+        }
+
+        function collision(newHead, snake) {
+            for (let i = 0; i < snake.length; i++) {
+                if (newHead.x == snake[i].x && newHead.y == snake[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < snake.length; i++) {
+                ctx.drawImage(snakeImg, snake[i].x, snake[i].y, box, box);
+            }
+
+            ctx.drawImage(foodImg, food.x, food.y, box, box);
+
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            if (d == "LEFT") snakeX -= box;
+            if (d == "UP") snakeY -= box;
+            if (d == "RIGHT") snakeX += box;
+            if (d == "DOWN") snakeY += box;
+
+            if (snakeX == food.x && snakeY == food.y) {
+                score++;
+                food = {
+                    x: Math.floor(Math.random() * 19 + 1) * box,
+                    y: Math.floor(Math.random() * 19 + 1) * box
+                };
+            } else {
+                snake.pop();
+            }
+
+            let newHead = {
+                x: snakeX,
+                y: snakeY
+            };
+
+            if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake)) {
+                clearInterval(game);
+                ctx.fillStyle = "red";
+                ctx.font = "50px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("Game ower!", canvas.width / 2, canvas.height / 2);
+                ctx.fillStyle = "black";
+                ctx.fillText("Pont: " + score, canvas.width / 2, canvas.height / 2 + 50);
+                document.getElementById("restart").style.display = "block";
+                return;
+            }
+
+            snake.unshift(newHead);
+
+            document.getElementById("score").innerText = "Pont: " + score; // Pontszám kiírása
+        }
+
+        function restartGame() {
+            snake = [];
+            snake[0] = { x: 9 * box, y: 10 * box };
+            score = 0;
+            d = null;
+            food = {
+                x: Math.floor(Math.random() * 19 + 1) * box,
+                y: Math.floor(Math.random() * 19 + 1) * box
+            };
+            document.getElementById("restart").style.display = "none";
+            game = setInterval(draw, 150);
+        }
+
+        game = setInterval(draw, 150); // Lassítva a kígyó mozgását
+    </script>
+</body>
+</html>
